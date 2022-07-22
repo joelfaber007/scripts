@@ -11,10 +11,9 @@ process_dir() {
 	pushd $1
 	pwd
 
-	for f in asdf_9K* ; do
+	for f in 9K* ; do
 		echo "processing $f"
-		#CREATED=$(exiftool $f | grep -E "Create Date.*\.[0-9]{2}" | grep -Eo ": [0-9]{4}" | grep -Eo "[0-9]*")
-		CREATED=$(exiftool $f | grep -E "Create Date.*\.[0-9]{2}")
+		CREATED=$(~/ExifTool/exiftool $f | grep -E "Create Date.*\.[0-9]{2}")
 		DATE=$(echo $CREATED | grep -Eo "....:..:..")
 		YEAR=$(echo $DATE | grep -Eo "^....")
 		MONTH=$(echo $DATE | grep -Eo ":..:" | grep -Eo "[0-9]+")
@@ -92,12 +91,21 @@ process_dir() {
 				;;
 		esac
 
-		cp $f $OUTPUTDIR
+		echo "Moved $f to $OUTPUTDIR" >> process.log
+		mv $f $OUTPUTDIR
 
 	done
 
 	popd
 }
 
-process_dir $INDIR1
-process_dir $INDIR2
+TMPDIR="tmp.$(date "+%s")"
+mkdir "$TMPDIR"
+pushd "$TMPDIR"
+find $INDIR1 -regextype egrep -print -regex ".*9K.*(CR2|JPG)" -exec cp {} . \;
+find $INDIR2 -regextype egrep -print -regex ".*9K.*(CR2|JPG)" -exec cp {} . \;
+
+process_dir .
+
+popd
+
